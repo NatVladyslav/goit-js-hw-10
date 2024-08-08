@@ -12,6 +12,7 @@ const minutesElement = document.querySelector("span[data-minutes]");
 const secondsElement = document.querySelector("span[data-seconds]");
 
 let countdownInterval;
+startButton.disabled = true;
 
 const options = {
   enableTime: true,
@@ -30,21 +31,22 @@ const options = {
                 color: "red",
 });
         } else {
-            startButton.addEventListener("click", () => {
-                // console.dir(inputData);
+            startButton.addEventListener("click", startButtonClick);
+                function startButtonClick() {
+                 iziToast.info({
+                    message: "Timer is started",
+                    position: "topCenter",
+                });
                 inputData.disabled = true;
                 startButton.disabled = true;
 ;                if (countdownInterval) {
                     clearInterval(countdownInterval); // Would clear previous interval if it added.
-                }
+}
       countdownInterval = setInterval(() => {
         updateTimer(selectedDate);
       }, 1000);
-                iziToast.success({
-                    message: "Timer is started",
-                    position: "topCenter",
-                });
-    });
+                    startButton.removeEventListener("click", startButtonClick);
+                };
         }
   },
 };
