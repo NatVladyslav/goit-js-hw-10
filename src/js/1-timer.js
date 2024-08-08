@@ -1,41 +1,80 @@
-// Описаний в документації
 import flatpickr from "flatpickr";
-// Додатковий імпорт стилів
 import "flatpickr/dist/flatpickr.min.css";
+import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
+
 
 const inputData = document.querySelector(".input-section input");
 const startButton = document.querySelector(".input-section button");
-const days = document.querySelector("span[data-days]");
-const hours = document.querySelector("span[data-hours]");
-const minutes = document.querySelector("span[data-minutes]");
-const seconds = document.querySelector("span[data-seconds]");
+const daysElement = document.querySelector("span[data-days]");
+const hoursElement = document.querySelector("span[data-hours]");
+const minutesElement = document.querySelector("span[data-minutes]");
+const secondsElement = document.querySelector("span[data-seconds]");
+
+let countdownInterval;
 
 const options = {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
-  onClose(selectedDates) {
-    console.log(selectedDates[0]);
+    onClose(selectedDates) { // Inside function of Flatpickr (event - change);
+        startButton.disabled = false;
+        const selectedDate = selectedDates[0];
+    // Press button - "Start" and start Timer
+        if (selectedDate.getTime() <= Date.now()) {
+            startButton.disabled = true;
+            iziToast.warning({
+                message: "Please choose a date in the future",
+                position: "topCenter",
+                color: "red",
+});
+        } else {
+            startButton.addEventListener("click", () => {
+                // console.dir(inputData);
+                inputData.disabled = true;
+                startButton.disabled = true;
+;                if (countdownInterval) {
+                    clearInterval(countdownInterval); // Would clear previous interval if it added.
+                }
+      countdownInterval = setInterval(() => {
+        updateTimer(selectedDate);
+      }, 1000);
+                iziToast.success({
+                    message: "Timer is started",
+                    position: "topCenter",
+                });
+    });
+        }
   },
 };
+
 flatpickr(inputData, options);
 
-let inputDataValue = Date.now();
+function updateTimer(targetDate) {
+  const now = new Date().getTime();
+  const timeRemaining = targetDate.getTime() - now;
+  if (timeRemaining <= 0) {
+    clearInterval(countdownInterval);
+    daysElement.textContent = "00";
+    hoursElement.textContent = "00";
+    minutesElement.textContent = "00";
+    secondsElement.textContent = "00";
+      inputData.disabled = false;
+      iziToast.info({
+          message: "Time is over!",
+          position: "topCenter",
+      });
+    return;
+  }
 
-inputData.addEventListener("change", getData);
-function getData(e) {
-    inputDataValue = e.target.value; 
-};
-console.log(inputDataValue);
+  const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
 
-
-const intervalValue = setInterval(() => {
-let nowTime = Date.now();
-console.log(nowTime);
-}, 2000);
-
-clearInterval(intervalValue);
-
-const date = new Date();
-console.log(date.getTime());    
+  daysElement.textContent = String(days).padStart(2, '0');
+  hoursElement.textContent = String(hours).padStart(2, '0');
+  minutesElement.textContent = String(minutes).padStart(2, '0');
+  secondsElement.textContent = String(seconds).padStart(2, '0');
+}
